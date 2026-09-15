@@ -31,8 +31,8 @@ The fitted regression equation is:
 
 ### Files
 
-- `APM1205_FA2_Linear_Models.Rmd` – R Markdown source file
-- `APM1205_FA2_Linear_Models.html` – rendered HTML report
+- `APM1205_FA2_Daileg_KristineArllaine_Linear_Models.Rmd` – R Markdown source file
+- `APM1205_FA2_Daileg_KristineArllaine_Linear_Models.html` – rendered HTML report
 - `Advertising.csv` – dataset used for the analysis
 
 ### Conclusion
