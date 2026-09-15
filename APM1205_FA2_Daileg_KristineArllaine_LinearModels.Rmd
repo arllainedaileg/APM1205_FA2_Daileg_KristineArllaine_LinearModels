@@ -1,0 +1,506 @@
+---
+title: "APM1205 Formative Assessment 2"
+subtitle: "Linear Models: Simple Linear Least-Squares Regression"
+author: "Submitted by: Kristine Arllaine Daileg"
+output:
+  html_document:
+---
+
+# Part 1 – Understanding the Dataset
+
+## A. Identify the Variables
+
+The **predictor variable (X)** is **TV**, which represents TV advertising expenditure.
+
+The **response variable (Y)** is **Sales**, which represents product sales.
+
+## B. Describe the Variables
+
+`TV` represents TV advertising expenditure for each market, measured in thousands of dollars.
+
+`Sales` represents product sales for each market, measured in thousands of units.
+
+Although the dataset also contains Radio and Newspaper advertising expenditure, this assessment focuses only on TV as the predictor and Sales as the response.
+
+## C. Research Question
+
+**Can TV advertising expenditure be used to predict Sales?**
+
+This analysis investigates whether there is a linear relationship between TV advertising expenditure and Sales.
+
+# Part 2 – Exploratory Data Analysis
+
+## A. Inspect the Dataset
+
+First, the Advertising dataset is loaded into R.
+
+```{r setup}
+advertising <- read.csv("Advertising.csv")
+
+head(advertising)
+dim(advertising)
+summary(advertising)
+```
+
+## B. Scatterplot
+
+The following scatterplot shows the relationship between TV advertising expenditure and Sales.
+
+```{r scatterplot}
+plot(advertising$TV,
+     advertising$Sales,
+     main = "Sales vs. TV Advertising",
+     xlab = "TV Advertising Budget ($000)",
+     ylab = "Sales (000 units)",
+     pch = 19)
+```
+
+## C. Interpretation of the Scatterplot
+
+The scatterplot shows a positive relationship between TV advertising expenditure and Sales. In general, markets with higher TV advertising budgets tend to have higher Sales. The points follow an upward pattern that appears to be approximately linear, although there is still some variation around the trend. Overall, TV advertising appears to be useful for predicting Sales.
+
+# Part 3 – Simple Linear Regression Model
+
+The simple linear regression model is
+
+\[
+Y = A + BX + E
+\]
+
+where \(Y\) is the response variable, \(X\) is the predictor variable, \(A\) is the intercept, \(B\) is the slope, and \(E\) represents the error.
+
+For this analysis:
+
+\[
+Sales = A + B(TV) + E
+\]
+
+## A. Fit the Regression Model
+
+```{r regression}
+model <- lm(Sales ~ TV, data = advertising)
+
+summary(model)
+```
+
+## B. Regression Coefficients
+
+```{r coefficients}
+coef(model)
+```
+
+The intercept is approximately **`r round(coef(model)[1], 6)`**.
+
+The slope is approximately **`r round(coef(model)[2], 6)`**.
+
+## C. Regression Equation
+
+The fitted regression equation is
+
+\[
+\widehat{Sales} = 7.032594 + 0.047537(TV)
+\]
+
+Therefore, the predicted Sales can be calculated using:
+
+\[
+\boxed{\widehat{Sales} = 7.032594 + 0.047537(TV)}
+\]
+
+## D. Interpretation of the Intercept
+
+The intercept is approximately **7.032594**.
+
+This means that when TV advertising expenditure is 0 thousand dollars, the model predicts Sales of approximately **7.033 thousand units**.
+
+## E. Interpretation of the Slope
+
+The slope is approximately **0.047537**.
+
+Since TV advertising is measured in thousands of dollars and Sales is measured in thousands of units, for every additional **$1,000 spent on TV advertising**, predicted Sales increase by approximately **0.047537 thousand units**, on average.
+
+This is approximately **47.537 additional units of Sales** for every additional $1,000 spent on TV advertising.
+
+# Part 4 – Least-Squares and Residual Analysis
+
+A residual is the difference between the observed value and its predicted value:
+
+\[
+E_i = Y_i - \widehat{Y}_i
+\]
+
+The least-squares regression line is selected by minimizing the sum of the squared residuals.
+
+## A. Calculate Fitted Values
+
+```{r fitted-values}
+advertising$Predicted_Sales <- fitted(model)
+
+head(advertising)
+```
+
+The fitted value represents the Sales predicted by the regression model for each observation.
+
+## B. Calculate Residuals
+
+```{r residuals}
+advertising$Residual <- residuals(model)
+
+head(advertising)
+```
+
+The residual represents the difference between the actual Sales and predicted Sales.
+
+## C. First 10 Observations
+
+```{r first-ten}
+first_10 <- head(
+  advertising[, c("TV",
+                  "Sales",
+                  "Predicted_Sales",
+                  "Residual")],
+  10
+)
+
+knitr::kable(
+  first_10,
+  digits = 4,
+  col.names = c(
+    "TV",
+    "Actual Sales",
+    "Predicted Sales",
+    "Residual"
+  ),
+  caption = "First 10 Observations with Fitted Values and Residuals"
+)
+```
+
+## D. Interpret One Residual
+
+The first observation is used as an example.
+
+```{r first-residual}
+first_actual <- advertising$Sales[1]
+first_predicted <- advertising$Predicted_Sales[1]
+first_residual <- advertising$Residual[1]
+
+first_actual
+first_predicted
+first_residual
+```
+
+For the first observation, the actual Sales are **`r round(first_actual, 4)` thousand units** and the predicted Sales are approximately **`r round(first_predicted, 4)` thousand units**.
+
+The residual is:
+
+\[
+E_1 = Y_1 - \widehat{Y}_1
+\]
+
+\[
+E_1 =
+`r round(first_actual, 4)`
+-
+`r round(first_predicted, 4)`
+=
+`r round(first_residual, 4)`
+\]
+
+The residual is positive, meaning that the actual Sales are higher than the Sales predicted by the regression model for this observation.
+
+# Part 5 – Residual Plot
+
+A residual plot is useful for checking whether there is a pattern in the residuals.
+
+```{r residual-plot}
+plot(model,
+     which = 1,
+     main = "Residuals vs. Fitted Values")
+```
+
+## Interpretation of the Residual Plot
+
+The residuals are generally distributed around zero. There does not appear to be a very strong systematic pattern in the residuals. However, there is still some variation in the residuals, including a few observations with relatively large residuals. Overall, the residual plot does not indicate a severe problem with using a simple linear regression model for these data.
+
+# Part 6 – Residual Standard Error
+
+The residual standard error is calculated using
+
+\[
+S_e =
+\sqrt{
+\frac{\sum E_i^2}{n-2}
+}
+\]
+
+The residual standard error can be obtained in R using:
+
+```{r residual-standard-error}
+summary(model)$sigma
+```
+
+The residual standard error is approximately:
+
+\[
+S_e = \text{`r round(summary(model)$sigma, 6)`}
+\]
+
+Therefore, the residual standard error is approximately **`r round(summary(model)$sigma, 3)` thousand units**.
+
+This indicates the typical size of the prediction error when using TV advertising expenditure to predict Sales.
+
+# Part 7 – Sums of Squares
+
+The total sum of squares is
+
+\[
+TSS = \sum(Y_i-\bar{Y})^2
+\]
+
+The residual sum of squares is
+
+\[
+RSS = \sum(Y_i-\widehat{Y}_i)^2
+\]
+
+The regression sum of squares is
+
+\[
+RegSS = TSS-RSS
+\]
+
+## A. Calculate TSS, RSS, and RegSS
+
+```{r sums-of-squares}
+y <- advertising$Sales
+yhat <- fitted(model)
+
+TSS <- sum((y - mean(y))^2)
+
+RSS <- sum((y - yhat)^2)
+
+RegSS <- TSS - RSS
+
+TSS
+RSS
+RegSS
+```
+
+## B. Results
+
+```{r sums-table}
+sums_of_squares <- data.frame(
+  Measure = c(
+    "TSS",
+    "RSS",
+    "RegSS"
+  ),
+  Value = c(
+    TSS,
+    RSS,
+    RegSS
+  )
+)
+
+knitr::kable(
+  sums_of_squares,
+  digits = 5,
+  caption = "Sums of Squares"
+)
+```
+
+The calculated values are approximately:
+
+\[
+TSS = 5417.14875
+\]
+
+\[
+RSS = 2102.53058
+\]
+
+\[
+RegSS = 3314.61817
+\]
+
+The relationship between the sums of squares is:
+
+\[
+TSS = RegSS + RSS
+\]
+
+```{r verify-sums}
+RegSS + RSS
+```
+
+Using the calculated values:
+
+\[
+3314.61817 + 2102.53058
+=
+5417.14875
+\]
+
+Therefore,
+
+\[
+TSS = RegSS + RSS
+\]
+
+The **TSS** represents the total variation in Sales. The **RegSS** represents the variation explained by TV advertising through the regression model. The **RSS** represents the variation that remains unexplained by the model.
+
+# Part 8 – Correlation and r²
+
+## A. Correlation
+
+The correlation coefficient is calculated using:
+
+```{r correlation}
+r <- cor(
+  advertising$TV,
+  advertising$Sales
+)
+
+r
+```
+
+The correlation coefficient is approximately:
+
+\[
+r = 0.782224
+\]
+
+The positive value indicates a positive linear relationship between TV advertising expenditure and Sales. Since the value is relatively close to 1, the relationship can be described as fairly strong.
+
+## B. Coefficient of Determination
+
+The coefficient of determination is calculated as:
+
+\[
+r^2
+\]
+
+```{r r-squared}
+r_squared <- r^2
+
+r_squared
+
+summary(model)$r.squared
+```
+
+The coefficient of determination is approximately:
+
+\[
+r^2 = 0.611875
+\]
+
+or
+
+\[
+61.19\%
+\]
+
+Therefore, approximately **61.19% of the variation in Sales is explained by the linear relationship between TV advertising expenditure and Sales**.
+
+The remaining approximately **38.81%** is not explained by this simple regression model and may be associated with other factors.
+
+# Part 9 – Overall Conclusion
+
+The analysis suggests that TV advertising expenditure can be used to predict Sales to a useful extent. The scatterplot shows a positive and approximately linear relationship between TV advertising and Sales. The fitted regression equation is \(\widehat{Sales} = 7.032594 + 0.047537(TV)\), showing that predicted Sales increase as TV advertising expenditure increases. For every additional $1,000 spent on TV advertising, predicted Sales increase by approximately 0.047537 thousand units, or about 47.537 units, on average. The residual standard error is approximately 3.259 thousand units, indicating that there is still some prediction error. The correlation coefficient of approximately 0.7822 indicates a fairly strong positive linear relationship. The \(r^2\) value of approximately 61.19% means that about 61.19% of the variation in Sales is explained by TV advertising expenditure. Overall, TV advertising is a useful predictor of Sales, although other variables could be considered to improve the model.
+
+# Complete R Code Used
+
+The complete R code used for the analysis is provided below.
+
+```{r complete-code, echo=TRUE}
+# ==========================================
+# APM1205 Formative Assessment 2
+# Simple Linear Least-Squares Regression
+# ==========================================
+
+# Load the Advertising dataset
+advertising <- read.csv("Advertising.csv")
+
+# Inspect the dataset
+head(advertising)
+dim(advertising)
+summary(advertising)
+
+# Create scatterplot
+plot(advertising$TV,
+     advertising$Sales,
+     main = "Sales vs. TV Advertising",
+     xlab = "TV Advertising Budget ($000)",
+     ylab = "Sales (000 units)",
+     pch = 19)
+
+# Fit simple linear regression model
+model <- lm(Sales ~ TV, data = advertising)
+
+# Display regression results
+summary(model)
+
+# Display regression coefficients
+coef(model)
+
+# Calculate fitted values
+advertising$Predicted_Sales <- fitted(model)
+
+# Calculate residuals
+advertising$Residual <- residuals(model)
+
+# Display first 10 observations
+head(
+  advertising[, c("TV",
+                  "Sales",
+                  "Predicted_Sales",
+                  "Residual")],
+  10
+)
+
+# Residual standard error
+summary(model)$sigma
+
+# Create residual plot
+plot(model,
+     which = 1,
+     main = "Residuals vs. Fitted Values")
+
+# Calculate correlation
+r <- cor(
+  advertising$TV,
+  advertising$Sales
+)
+
+r
+
+# Calculate r-squared
+r_squared <- r^2
+
+r_squared
+
+# Calculate sums of squares
+y <- advertising$Sales
+yhat <- fitted(model)
+
+TSS <- sum((y - mean(y))^2)
+
+RSS <- sum((y - yhat)^2)
+
+RegSS <- TSS - RSS
+
+TSS
+RSS
+RegSS
+
+# Verify TSS = RegSS + RSS
+RegSS + RSS
+```
+
+# Dataset Source
+
+The dataset used in this assessment is the **Advertising** dataset specified in the assessment instructions.
+
+Dataset source:
+
+https://www.statlearning.com/s/Advertising.csv
